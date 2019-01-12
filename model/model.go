@@ -5,6 +5,7 @@ import (
 	"github.com/MaiaVinicius/wabot/lib"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	"github.com/rhymen/go-whatsapp"
 	"log"
 	"os"
 )
@@ -22,6 +23,8 @@ type Queue struct {
 	Phone     string
 	Metadata2 string
 }
+
+var db = dbConn()
 
 func dbConn() (db *sql.DB) {
 
@@ -42,9 +45,6 @@ func dbConn() (db *sql.DB) {
 }
 
 func GetProjects() []Project {
-
-	db := dbConn()
-
 	rows, err := db.Query("SELECT p.id, p.label, s.id senderId, s.phone FROM wabot_project p INNER JOIN wabot_sender s ON s.project_id = p.id where s.status_id=1 and s.active=1 and p.active=1")
 
 	if err != nil {
@@ -64,9 +64,6 @@ func GetProjects() []Project {
 }
 
 func GetQueue(senderId int) []Queue {
-
-	db := dbConn()
-
 	stmt, err := db.Prepare("SELECT id, message, phone, metadata2  FROM wabot_queue where active=1 and sender_id=? and send_date<=CURDATE() LIMIT 1")
 
 	rows, err := stmt.Query(senderId)
@@ -88,8 +85,6 @@ func GetQueue(senderId int) []Queue {
 }
 
 func RemoveFromQueue(queueId int) {
-	db := dbConn()
-
 	stmt, err := db.Prepare("INSERT INTO wabot_sent (id,sender_id, phone, message, price)  (SELECT id,sender_id, phone, message, price FROM wabot_queue where id=?)")
 
 	if err != nil {
@@ -107,21 +102,23 @@ func RemoveFromQueue(queueId int) {
 	stmtDel.Exec(queueId)
 }
 
-func InsertResponse(projectId int, phone string, id string, message string, timestamp string) {
-	db := dbConn()
+func InsertResponse(projectId int, phone string, id string, message string, timestamp string, statusId whatsapp.MessageStatus, fromMe bool) {
 
-	stmt, err := db.Prepare("REPLACE INTO wabot_response (id, phone, message, project_id, datetime) VALUES (?,?,?,?,?)")
+	stmt, err := db.Prepare("REPLACE INTO wabot_response (id, phone, message, project_id, datetime, status_id,from_me) VALUES (?,?,?,?,?,?,?)")
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	stmt.Exec(id, phone, message, projectId, timestamp)
+	fromMeNumeric := 0
+	if fromMe {
+		fromMeNumeric = 1
+	}
+
+	stmt.Exec(id, phone, message, projectId, timestamp, statusId, fromMeNumeric)
 }
 
 func LogMessage(logType int, message string, projectId int) {
-	db := dbConn()
-
 	stmt, err := db.Prepare("INSERT INTO wabot_log (project_id, log_type_id, message) value (?, ?, ?)")
 
 	if err != nil {
@@ -132,7 +129,6 @@ func LogMessage(logType int, message string, projectId int) {
 }
 
 func GetLastSent(projectId int) string {
-	db := dbConn()
 	stmt, err := db.Prepare("SELECT datetime FROM wabot_response WHERE project_id=? ORDER BY datetime DESC LIMIT 1")
 
 	rows := stmt.QueryRow(projectId)
@@ -148,6 +144,44 @@ func GetLastSent(projectId int) string {
 	return response.Datetime
 }
 
-func AddToQueue(Phone string, message string, projectId int) {
+func QueueAlreadyAdded(licenseId int64, appointmentId int64) string {
+	stmt, err := db.Prepare("SELECT id FROM wabot_queue WHERE license_id=? AND appointment_id=?")
 
+	rows := stmt.QueryRow(licenseId, appointmentId)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var response lib.Response
+
+	rows.Scan(&response.ID)
+
+	return response.ID
+}
+
+func MessageAlreadySent(licenseId int64, appointmentId int64) string {
+	stmt, err := db.Prepare("SELECT id FROM wabot_sent WHERE license_id=? AND appointment_id=?")
+
+	rows := stmt.QueryRow(licenseId, appointmentId)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var response lib.Response
+
+	rows.Scan(&response.ID)
+
+	return response.ID
+}
+
+func AddToQueue(phone string, message string, datetime string, senderId int, licenseId int64, appointmentId int64) {
+	stmt, err := db.Prepare("INSERT INTO wabot.wabot_queue (sender_id, message, phone, send_date, send_time, license_id, appointment_id) value (?, ?, ?, DATE(?), TIME(?), ?, ?)")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	stmt.Exec(senderId, message, phone, datetime, datetime, licenseId, appointmentId)
 }

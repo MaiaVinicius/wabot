@@ -2,10 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/MaiaVinicius/wabot/model"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -36,21 +39,48 @@ func getJson(url string, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
-func main() {
+func getUrl(licenseId string) string {
+	//[LICENSE_ID]
 
 	err2 := godotenv.Load()
 	if err2 != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	var replacer = strings.NewReplacer("[LICENSE_ID]", licenseId)
+
 	url := os.Getenv("QUEUE_URL")
 
-	println("Envio finalizado. \n")
+	url = replacer.Replace(url)
+
+	return url
+}
+
+func main() {
+	url := getUrl(strconv.Itoa(105))
+
+	println("Iniciando importação. \n")
+
 	queue := new(Queue)
 	getJson(url, queue)
 
 	for _, element := range queue.SMSList {
 
-		println(element.Phone)
+		phone := element.Phone
+		licenseId := element.LicenseId
+		appointmentId := element.AppointmentId
+		message := element.Message
+		datetime := element.DateTime
+		senderId := 1
+
+		alreadyAddedId := model.QueueAlreadyAdded(licenseId, appointmentId)
+		if alreadyAddedId == "" {
+			messageAlreadySent := model.MessageAlreadySent(licenseId, appointmentId)
+
+			if messageAlreadySent == "" {
+				model.AddToQueue(phone, message, datetime, senderId, licenseId, appointmentId)
+			}
+		}
 	}
 
 }

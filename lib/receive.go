@@ -16,6 +16,8 @@ type Response struct {
 	Message   string
 	Datetime  string
 	Timestamp int64
+	FromMe    bool
+	Status    whatsapp.MessageStatus
 }
 
 var responses []Response
@@ -27,20 +29,23 @@ func (*waHandler) HandleError(err error) {
 
 //Optional to be implemented. Implement HandleXXXMessage for the types you need.
 func (*waHandler) HandleTextMessage(message whatsapp.TextMessage) {
-	if message.Info.FromMe != true {
-		var response Response
 
-		unixTimeUTC := time.Unix(int64(message.Info.Timestamp), 0)
-		unitTimeInRFC3339 := unixTimeUTC.Format("2006-01-02 15:04:05")
+	//if message.Info.FromMe != true {
+	var response Response
 
-		response.ID = message.Info.Id
-		response.Message = message.Text
-		response.Timestamp = int64(message.Info.Timestamp)
-		response.Datetime = unitTimeInRFC3339
-		response.Phone = strings.Replace(message.Info.RemoteJid, "@s.whatsapp.net", "", -1)
+	unixTimeUTC := time.Unix(int64(message.Info.Timestamp), 0)
+	unitTimeInRFC3339 := unixTimeUTC.Format("2006-01-02 15:04:05")
 
-		responses = append(responses, response)
-	}
+	response.ID = message.Info.Id
+	response.Message = message.Text
+	response.Timestamp = int64(message.Info.Timestamp)
+	response.Datetime = unitTimeInRFC3339
+	response.Status = message.Info.Status
+	response.FromMe = message.Info.FromMe
+	response.Phone = strings.Replace(message.Info.RemoteJid, "@s.whatsapp.net", "", -1)
+
+	responses = append(responses, response)
+	//}
 }
 
 //Example for media handling. Video, Audio, Document are also possible in the same way

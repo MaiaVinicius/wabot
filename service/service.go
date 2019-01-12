@@ -7,7 +7,6 @@ import (
 	w "github.com/rhymen/go-whatsapp"
 	"os"
 	"strings"
-	"time"
 )
 
 func StartProjects() {
@@ -15,8 +14,8 @@ func StartProjects() {
 
 	for _, element := range projects {
 
-		prepareQueue(element)
-		//prepareReception(element)
+		//prepareQueue(element)
+		prepareReception(element)
 	}
 	println("Envio finalizado. \n")
 }
@@ -38,15 +37,15 @@ func prepareQueue(project model.Project) {
 func prepareReception(project model.Project) {
 	print(fmt.Sprintf("Recebendo respostas do Celular: %s \n", project.Phone))
 
-	var datetimeLastSent string
-
-	datetimeLastSent = model.GetLastSent(project.ID)
-
-	t, err := time.Parse("2006-01-02 15:04:05", datetimeLastSent)
-
-	if err != nil {
-		fmt.Println(err)
-	}
+	//var datetimeLastSent string
+	//
+	//datetimeLastSent = model.GetLastSent(project.ID)
+	//
+	//t, err := time.Parse("2006-01-02 15:04:05", datetimeLastSent)
+	//
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
 
 	var responses []lib.Response
 
@@ -54,9 +53,9 @@ func prepareReception(project model.Project) {
 
 	for _, element := range responses {
 
-		if element.Timestamp-10800 > t.Unix() || datetimeLastSent == "" {
-			model.InsertResponse(project.ID, element.Phone, element.ID, element.Message, element.Datetime)
-		}
+		//if element.Timestamp > t.Unix() || datetimeLastSent == "" || true {
+		//}
+		model.InsertResponse(project.ID, element.Phone, element.ID, element.Message, element.Datetime, element.Status, element.FromMe)
 	}
 }
 
