@@ -1,0 +1,4 @@
+.idea/
+.env
+storage/session/
+storage/go1.11.linux-amd64.tar.gz
