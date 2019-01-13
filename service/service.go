@@ -14,7 +14,7 @@ func StartProjects() {
 
 	for _, element := range projects {
 
-		//prepareQueue(element)
+		prepareQueue(element)
 		prepareReception(element)
 	}
 	println("Envio finalizado. \n")
@@ -68,11 +68,24 @@ func sendQueue(senderPhone string, queue []model.Queue) {
 		fmt.Fprintf(os.Stderr, "error sending message: %v", err)
 	}
 
+	var toRemove []lib.Sent
+
 	for _, element := range queue {
 		element.Message = strings.Replace(element.Message, "[METADATA]", element.Metadata2, -1)
 
 		sendMessage(wac, element)
+
+		//add item para remover
+		item := lib.Sent{}
+
+		item.LicenseId = element.LicenseId
+		item.AppointmentId = element.AppointmentId
+
+		// append works on nil slices.
+		toRemove = append(toRemove, item)
 	}
+
+	lib.RemoveQueue(toRemove)
 }
 
 func sendMessage(wac *w.Conn, message model.Queue) int {

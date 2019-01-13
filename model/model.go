@@ -2,12 +2,15 @@ package model
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/MaiaVinicius/wabot/lib"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"github.com/rhymen/go-whatsapp"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type Project struct {
@@ -17,14 +20,47 @@ type Project struct {
 	Phone    string
 }
 type Queue struct {
-	ID        int
-	SenderID  int
-	Message   string
-	Phone     string
-	Metadata2 string
+	ID            int
+	SenderID      int
+	LicenseId     int
+	AppointmentId int
+	Message       string
+	Phone         string
+	Metadata2     string
+}
+
+type Sent struct {
+	ID            int
+	LicenseId     int
+	AppointmentId int
 }
 
 var db = dbConn()
+
+func unicode2utf8(source string) string {
+	var res = []string{""}
+	sUnicode := strings.Split(source, "\\u")
+	var context = ""
+	for _, v := range sUnicode {
+		var additional = ""
+		if len(v) < 1 {
+			continue
+		}
+		if len(v) > 4 {
+			rs := []rune(v)
+			v = string(rs[:4])
+			additional = string(rs[4:])
+		}
+		temp, err := strconv.ParseInt(v, 16, 32)
+		if err != nil {
+			context += v
+		}
+		context += fmt.Sprintf("%c", temp)
+		context += additional
+	}
+	res = append(res, context)
+	return strings.Join(res, "")
+}
 
 func dbConn() (db *sql.DB) {
 
@@ -64,7 +100,7 @@ func GetProjects() []Project {
 }
 
 func GetQueue(senderId int) []Queue {
-	stmt, err := db.Prepare("SELECT id, message, phone, metadata2  FROM wabot_queue where active=1 and sender_id=? and send_date<=CURDATE() LIMIT 1")
+	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date<=CURDATE() LIMIT 100")
 
 	rows, err := stmt.Query(senderId)
 
@@ -76,7 +112,7 @@ func GetQueue(senderId int) []Queue {
 	for rows.Next() {
 		var queue Queue
 
-		err = rows.Scan(&queue.ID, &queue.Message, &queue.Phone, &queue.Metadata2)
+		err = rows.Scan(&queue.ID, &queue.Message, &queue.Phone, &queue.LicenseId, &queue.AppointmentId)
 
 		queues = append(queues, queue)
 	}
@@ -85,7 +121,7 @@ func GetQueue(senderId int) []Queue {
 }
 
 func RemoveFromQueue(queueId int) {
-	stmt, err := db.Prepare("INSERT INTO wabot_sent (id,sender_id, phone, message, price)  (SELECT id,sender_id, phone, message, price FROM wabot_queue where id=?)")
+	stmt, err := db.Prepare("INSERT INTO wabot_sent (id,sender_id, phone, message, price, appointment_id, license_id)  (SELECT id,sender_id, phone, message, price, appointment_id, license_id FROM wabot_queue where id=?)")
 
 	if err != nil {
 		panic(err.Error())
@@ -104,7 +140,7 @@ func RemoveFromQueue(queueId int) {
 
 func InsertResponse(projectId int, phone string, id string, message string, timestamp string, statusId whatsapp.MessageStatus, fromMe bool) {
 
-	stmt, err := db.Prepare("REPLACE INTO wabot_response (id, phone, message, project_id, datetime, status_id,from_me) VALUES (?,?,?,?,?,?,?)")
+	stmt, err := db.Prepare("INSERT INTO wabot_response (id, phone, message, project_id, datetime, status_id,from_me) VALUES (?,?,?,?,?,?,?)")
 
 	if err != nil {
 		panic(err.Error())
@@ -115,7 +151,60 @@ func InsertResponse(projectId int, phone string, id string, message string, time
 		fromMeNumeric = 1
 	}
 
-	stmt.Exec(id, phone, message, projectId, timestamp, statusId, fromMeNumeric)
+	res, err := stmt.Exec(id, phone, message, projectId, timestamp, statusId, fromMeNumeric)
+
+	if err != nil {
+		//fmt.Println(err.Error())
+	} else {
+		count, err2 := res.RowsAffected()
+
+		if err2 == nil {
+			//linha foi adicionada
+
+			if count > 0 {
+				//println("Affected row")
+				licenseId, appointmentId := findResponseClient(phone, timestamp)
+
+				if licenseId > 0 {
+					//println("Updating response")
+					updateResponse(id, licenseId, appointmentId)
+				}
+			}
+		}
+	}
+}
+
+func updateResponse(responseId string, licenseId int, appointmentId int) {
+	stmt, err := db.Prepare("UPDATE wabot_response SET license_id=?, appointment_id=? WHERE id=? AND license_id is null and appointment_id is null")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	stmt.Exec(licenseId, appointmentId, responseId)
+}
+
+func findResponseClient(phone string, datetime string) (int, int) {
+	stmt, err := db.Prepare("SELECT ifnull(ID,0)ID, ifnull(license_id,0 ) LicenseId, ifnull(appointment_id,0) AppointmentId FROM wabot_sent WHERE phone=? ORDER BY datetime DESC LIMIT 1")
+
+	rows := stmt.QueryRow(phone)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var response Sent
+
+	err2 := rows.Scan(&response.ID, &response.AppointmentId, &response.LicenseId)
+
+	if err2 != nil {
+		panic(err2.Error()) // proper error handling instead of panic in your app
+	}
+
+	appointmentId := response.AppointmentId
+	licenseId := response.LicenseId
+
+	return appointmentId, licenseId
 }
 
 func LogMessage(logType int, message string, projectId int) {
