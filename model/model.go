@@ -14,10 +14,11 @@ import (
 )
 
 type Project struct {
-	ID       int
-	Label    string
-	SenderID int
-	Phone    string
+	ID        int
+	Label     string
+	LicenseId int
+	SenderID  int
+	Phone     string
 }
 type Queue struct {
 	ID            int
@@ -26,7 +27,7 @@ type Queue struct {
 	AppointmentId int
 	Message       string
 	Phone         string
-	Metadata2     string
+	//Metadata2     string
 }
 
 type Sent struct {
@@ -81,7 +82,7 @@ func dbConn() (db *sql.DB) {
 }
 
 func GetProjects() []Project {
-	rows, err := db.Query("SELECT p.id, p.label, s.id senderId, s.phone FROM wabot_project p INNER JOIN wabot_sender s ON s.project_id = p.id where s.status_id=1 and s.active=1 and p.active=1")
+	rows, err := db.Query("SELECT p.id, p.label, s.id senderId, s.phone, p.license_id LicenseId FROM wabot_project p INNER JOIN wabot_sender s ON s.project_id = p.id where s.status_id=1 and s.active=1 and p.active=1")
 
 	if err != nil {
 		panic(err.Error())
@@ -91,7 +92,7 @@ func GetProjects() []Project {
 	for rows.Next() {
 		var project Project
 
-		err = rows.Scan(&project.ID, &project.Label, &project.SenderID, &project.Phone)
+		err = rows.Scan(&project.ID, &project.Label, &project.SenderID, &project.Phone, &project.LicenseId)
 
 		projects = append(projects, project)
 	}
@@ -100,7 +101,7 @@ func GetProjects() []Project {
 }
 
 func GetQueue(senderId int) []Queue {
-	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date<=CURDATE() LIMIT 100")
+	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date<=CURDATE() order by send_time asc LIMIT 5")
 
 	rows, err := stmt.Query(senderId)
 
@@ -138,7 +139,7 @@ func RemoveFromQueue(queueId int) {
 	stmtDel.Exec(queueId)
 }
 
-func InsertResponse(projectId int, phone string, id string, message string, timestamp string, statusId whatsapp.MessageStatus, fromMe bool) {
+func InsertResponse(projectId int, phone string, id string, message string, timestamp string, statusId whatsapp.MessageStatus, fromMe bool) bool {
 
 	stmt, err := db.Prepare("INSERT INTO wabot_response (id, phone, message, project_id, datetime, status_id,from_me) VALUES (?,?,?,?,?,?,?)")
 
@@ -168,10 +169,14 @@ func InsertResponse(projectId int, phone string, id string, message string, time
 				if licenseId > 0 {
 					//println("Updating response")
 					updateResponse(id, licenseId, appointmentId)
+
 				}
+				return true
 			}
 		}
 	}
+
+	return false
 }
 
 func updateResponse(responseId string, licenseId int, appointmentId int) {
@@ -198,7 +203,7 @@ func findResponseClient(phone string, datetime string) (int, int) {
 	err2 := rows.Scan(&response.ID, &response.AppointmentId, &response.LicenseId)
 
 	if err2 != nil {
-		panic(err2.Error()) // proper error handling instead of panic in your app
+		//panic(err2.Error()) // proper error handling instead of panic in your app
 	}
 
 	appointmentId := response.AppointmentId
@@ -273,4 +278,33 @@ func AddToQueue(phone string, message string, datetime string, senderId int, lic
 	}
 
 	stmt.Exec(senderId, message, phone, datetime, datetime, licenseId, appointmentId)
+}
+
+func GetResponsesToSync() []lib.ResponseToServer {
+	rows, err := db.Query("SELECT id, message, appointment_id AppointmentId, license_id LicenseId, datetime, phone, auto_id AutoId FROM wabot.wabot_response WHERE sync=0 AND from_me=0")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var responses []lib.ResponseToServer
+	for rows.Next() {
+		var response lib.ResponseToServer
+
+		err = rows.Scan(&response.ID, &response.Message, &response.AppointmentId, &response.LicenseId, &response.DateTime, &response.Phone, &response.AutoId)
+
+		responses = append(responses, response)
+	}
+
+	return responses
+}
+
+func UpdateSyncedResponses(lastId int) {
+	stmt, err := db.Prepare("UPDATE wabot_response SET sync=1, sync_at=NOW() WHERE from_me=0 AND sync=0 AND auto_id<=?")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	stmt.Exec(lastId)
 }

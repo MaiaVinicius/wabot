@@ -4,45 +4,31 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
+	"github.com/rhymen/go-whatsapp"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 )
 
-func getUrl(licenseId string, key string) string {
-	//[LICENSE_ID]
-
-	err2 := godotenv.Load()
-	if err2 != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	var replacer = strings.NewReplacer("[LICENSE_ID]", licenseId)
-
-	url := os.Getenv(key)
-
-	url = replacer.Replace(url)
-
-	return url
-}
-
-type Sent struct {
+type ResponseToServer struct {
+	Phone         string
+	ID            string
+	AutoId        int
+	Message       string
+	DateTime      string
+	Timestamp     int64
 	LicenseId     int
 	AppointmentId int
+	FromMe        bool
+	Status        whatsapp.MessageStatus
 }
 
-type DataRemove struct {
-	DataList []Sent
+type DataResponses struct {
+	Responses []ResponseToServer
 }
 
-func RemoveQueue(data []Sent) {
-	println("Removing from server sms queue")
-
-	url := getUrl(strconv.Itoa(105), "REMOVE_QUEUE_URL")
+func SendResponsesToServer(data []ResponseToServer) {
+	url := getUrl(strconv.Itoa(105), "RESPONSES_URL")
 	fmt.Println("URL:>", url)
 
 	//var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
@@ -60,10 +46,10 @@ func RemoveQueue(data []Sent) {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("Status:", resp.Status)
+	fmt.Println("response Status:", resp.Status)
 	//fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	if false{
+	if true{
 		fmt.Println("response Body:", string(body))
 	}
 }

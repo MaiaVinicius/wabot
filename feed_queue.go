@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/MaiaVinicius/wabot/model"
 	"github.com/joho/godotenv"
 	"log"
@@ -23,8 +24,12 @@ type SMS struct {
 	CreatedAt     string `json:"sysDate"`
 }
 
-type Queue struct {
+type SMSList struct {
 	SMSList []SMS `json:"sms"`
+}
+
+type Queue struct {
+	Data SMSList `json:"data"`
 }
 
 var myClient = &http.Client{Timeout: 10 * time.Second}
@@ -57,30 +62,42 @@ func getUrl(licenseId string) string {
 }
 
 func main() {
-	url := getUrl(strconv.Itoa(105))
 
-	println("Iniciando importação. \n")
+	projects := model.GetProjects()
 
-	queue := new(Queue)
-	getJson(url, queue)
+	for _, proj := range projects {
 
-	for _, element := range queue.SMSList {
+		println(proj.LicenseId)
 
-		phone := element.Phone
-		licenseId := element.LicenseId
-		appointmentId := element.AppointmentId
-		message := element.Message
-		datetime := element.DateTime
-		senderId := 1
+		url := getUrl(strconv.Itoa(proj.LicenseId))
 
-		alreadyAddedId := model.QueueAlreadyAdded(licenseId, appointmentId)
-		if alreadyAddedId == "" {
-			messageAlreadySent := model.MessageAlreadySent(licenseId, appointmentId)
+		println("Iniciando importação. \n")
 
-			if messageAlreadySent == "" {
-				model.AddToQueue(phone, message, datetime, senderId, licenseId, appointmentId)
+		queue := new(Queue)
+		println(url)
+
+		getJson(url, queue)
+
+		for _, element := range queue.Data.SMSList {
+
+			phone := element.Phone
+			licenseId := element.LicenseId
+			appointmentId := element.AppointmentId
+			message := element.Message
+			datetime := element.DateTime
+			senderId := proj.SenderID
+
+			alreadyAddedId := model.QueueAlreadyAdded(licenseId, appointmentId)
+			if alreadyAddedId == "" {
+				messageAlreadySent := model.MessageAlreadySent(licenseId, appointmentId)
+
+				if messageAlreadySent == "" {
+					model.AddToQueue(phone, message, datetime, senderId, licenseId, appointmentId)
+				}
 			}
 		}
+
+		println(fmt.Sprintf("---->  	%d importados", len(queue.Data.SMSList)))
 	}
 
 }

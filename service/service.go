@@ -6,7 +6,6 @@ import (
 	"github.com/MaiaVinicius/wabot/model"
 	w "github.com/rhymen/go-whatsapp"
 	"os"
-	"strings"
 )
 
 func StartProjects() {
@@ -17,25 +16,29 @@ func StartProjects() {
 		prepareQueue(element)
 		prepareReception(element)
 	}
-	println("Envio finalizado. \n")
+
+	println("===============================")
+	println("|     Rotina finalizada.     |")
+	println("===============================")
 }
 
 func prepareQueue(project model.Project) {
-	print(fmt.Sprintf("Enviando do Celular: %s id: %d \n", project.Phone, int(project.SenderID)))
+	print(fmt.Sprintf("---->   PROJETO: %s (%s) id: %d \n", project.Phone, project.Label, int(project.SenderID)))
 
 	queue := model.GetQueue(project.SenderID)
 
 	if len(queue) > 0 {
-		msg := fmt.Sprintf("Envio iniciado. %d", len(queue))
+		msg := fmt.Sprintf("----->	Envio iniciado. %d", len(queue))
 
 		model.LogMessage(1, msg, project.ID)
 
-		sendQueue(project.Phone, queue)
+		sendQueue(project.Phone, queue, project.Label)
 	}
+	syncResponsesWithServer()
 }
 
 func prepareReception(project model.Project) {
-	print(fmt.Sprintf("Recebendo respostas do Celular: %s \n", project.Phone))
+	println(fmt.Sprintf("---->   Recebendo respostas do Celular: %s", project.Phone))
 
 	//var datetimeLastSent string
 	//
@@ -51,15 +54,23 @@ func prepareReception(project model.Project) {
 
 	responses = lib.Receive(project.Phone)
 
+	i := 0
+
 	for _, element := range responses {
 
 		//if element.Timestamp > t.Unix() || datetimeLastSent == "" || true {
 		//}
-		model.InsertResponse(project.ID, element.Phone, element.ID, element.Message, element.Datetime, element.Status, element.FromMe)
+		added := model.InsertResponse(project.ID, element.Phone, element.ID, element.Message, element.Datetime, element.Status, element.FromMe)
+
+		if added{
+			i += 1
+		}
 	}
+
+	println(fmt.Sprintf("----->	Novas respostas recebidas: %d", i))
 }
 
-func sendQueue(senderPhone string, queue []model.Queue) {
+func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
 	//connect
 
 	wac, err := lib.Connect(senderPhone)
@@ -71,7 +82,9 @@ func sendQueue(senderPhone string, queue []model.Queue) {
 	var toRemove []lib.Sent
 
 	for _, element := range queue {
-		element.Message = strings.Replace(element.Message, "[METADATA]", element.Metadata2, -1)
+		//element.Message = strings.Replace(element.Message, "[METADATA]", element.Metadata2, -1)
+
+		element.Message = fmt.Sprintf("*%s*. \n\n%s", projectName, element.Message)
 
 		sendMessage(wac, element)
 
@@ -89,7 +102,7 @@ func sendQueue(senderPhone string, queue []model.Queue) {
 }
 
 func sendMessage(wac *w.Conn, message model.Queue) int {
-	print(fmt.Sprintf("-		Enviando para: %s \n", message.Phone))
+	print(fmt.Sprintf("------->		Enviando para: %s", message.Phone))
 
 	status := lib.Send(wac, message.Phone, message.Message)
 
@@ -103,4 +116,34 @@ func sendMessage(wac *w.Conn, message model.Queue) int {
 func removeFromQueue(messageId int) {
 	model.RemoveFromQueue(messageId)
 	return
+}
+
+func syncResponsesWithServer() {
+
+	var s []lib.ResponseToServer
+
+	responses := model.GetResponsesToSync()
+
+	lastId := 0
+
+	if len(responses) > 0 {
+		println("---->	Sincronizando respostas")
+
+		for _, element := range responses {
+			item := lib.ResponseToServer{}
+
+			item = element
+
+			// append works on nil slices.
+			s = append(s, item)
+			if element.AutoId > lastId {
+				lastId = element.AutoId
+			}
+		}
+
+		lib.SendResponsesToServer(s)
+
+		println(lastId)
+		model.UpdateSyncedResponses(lastId)
+	}
 }

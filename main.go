@@ -37,7 +37,7 @@ func startCron() {
 	model.LogMessage(1, "Cron inicializado.", 0)
 	RunJob()
 
-	c.AddFunc("@every 1m", RunJob)
+	c.AddFunc("@every 10m", RunJob)
 	go c.Start()
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt, os.Kill)
@@ -45,6 +45,8 @@ func startCron() {
 }
 
 func RunJob() {
-	println("Iniciando Cron job.")
+	println("===============================")
+	println("|     Iniciando Cron job.     |")
+	println("===============================")
 	service.StartProjects()
 }

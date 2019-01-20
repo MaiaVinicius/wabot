@@ -20,7 +20,7 @@ func NewSession(timeout time.Duration) (*w.Conn, error) {
 }
 
 func Connect(phone string) (*w.Conn, error) {
-	wac, err := NewSession(3)
+	wac, err := NewSession(10)
 
 	//create new WhatsApp connection
 	err = login(wac, phone)

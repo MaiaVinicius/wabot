@@ -10,10 +10,10 @@ import (
 
 func Send(wac *w.Conn, sendTo string, message string) int {
 
-	t := 1 + rand.Intn(5)
+	t := 30 + rand.Intn(90)
 	//t := 90 + rand.Intn(20)
 
-	fmt.Printf("		timeout: %d \n", t)
+	println(fmt.Sprintf("	/	timeout: %d s ...", t))
 
 	timeout := time.Duration(t)
 
