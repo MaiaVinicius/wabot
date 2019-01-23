@@ -1,15 +1,19 @@
-package main
+package input
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/MaiaVinicius/wabot/model"
 	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv"
 	"log"
+	_ "log"
 	"net/http"
 	"os"
+	_ "os"
 	"strconv"
 	"strings"
+	_ "strings"
 	"time"
 )
 
@@ -61,7 +65,7 @@ func getUrl(licenseId string) string {
 	return url
 }
 
-func main() {
+func Feed() {
 
 	projects := model.GetProjects()
 

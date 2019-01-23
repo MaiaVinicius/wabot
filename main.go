@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/MaiaVinicius/wabot/input"
 	"github.com/MaiaVinicius/wabot/model"
 	"github.com/MaiaVinicius/wabot/service"
 	"github.com/gorilla/mux"
@@ -45,6 +46,7 @@ func startCron() {
 }
 
 func RunJob() {
+	input.Feed()
 	println("===============================")
 	println("|     Iniciando Cron job.     |")
 	println("===============================")
