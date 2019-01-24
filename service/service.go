@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
+	w "github.com/MaiaVinicius/go-whatsapp"
 	"github.com/MaiaVinicius/wabot/lib"
 	"github.com/MaiaVinicius/wabot/model"
-	w "github.com/rhymen/go-whatsapp"
 	"os"
 )
 
@@ -13,6 +13,7 @@ func StartProjects() {
 
 	for _, element := range projects {
 
+		prepareReception(element)
 		prepareQueue(element)
 		prepareReception(element)
 	}
@@ -34,10 +35,11 @@ func prepareQueue(project model.Project) {
 
 		sendQueue(project.Phone, queue, project.Label)
 	}
-	syncResponsesWithServer()
 }
 
 func prepareReception(project model.Project) {
+	syncResponsesWithServer()
+
 	println(fmt.Sprintf("---->   Recebendo respostas do Celular: %s", project.Phone))
 
 	//var datetimeLastSent string
@@ -96,9 +98,10 @@ func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
 
 		// append works on nil slices.
 		toRemove = append(toRemove, item)
+		lib.RemoveQueue(toRemove)
+		toRemove = nil
 	}
 
-	lib.RemoveQueue(toRemove)
 }
 
 func sendMessage(wac *w.Conn, message model.Queue) int {

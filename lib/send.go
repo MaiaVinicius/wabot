@@ -2,15 +2,15 @@ package lib
 
 import (
 	"fmt"
-	"github.com/rhymen/go-whatsapp"
-	w "github.com/rhymen/go-whatsapp"
+	"github.com/MaiaVinicius/go-whatsapp"
+	w "github.com/MaiaVinicius/go-whatsapp"
 	"math/rand"
 	"time"
 )
 
 func Send(wac *w.Conn, sendTo string, message string) int {
 
-	t := 30 + rand.Intn(50)
+	t := 30 + rand.Intn(60)
 	//t := 90 + rand.Intn(20)
 
 	println(fmt.Sprintf("	/	timeout: %d s ...", t))

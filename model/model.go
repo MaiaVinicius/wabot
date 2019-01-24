@@ -6,7 +6,7 @@ import (
 	"github.com/MaiaVinicius/wabot/lib"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
-	"github.com/rhymen/go-whatsapp"
+	"github.com/MaiaVinicius/go-whatsapp"
 	"log"
 	"os"
 	"strconv"
@@ -101,7 +101,7 @@ func GetProjects() []Project {
 }
 
 func GetQueue(senderId int) []Queue {
-	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date<=CURDATE() order by send_time asc LIMIT 6")
+	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date<=CURDATE() and message like 'Obrigado%' order by send_date, send_time asc LIMIT 6")
 
 	rows, err := stmt.Query(senderId)
 
@@ -122,7 +122,9 @@ func GetQueue(senderId int) []Queue {
 }
 
 func RemoveFromQueue(queueId int) {
-	stmt, err := db.Prepare("INSERT INTO wabot_sent (id,sender_id, phone, message, price, appointment_id, license_id)  (SELECT id,sender_id, phone, message, price, appointment_id, license_id FROM wabot_queue where id=?)")
+	println(queueId)
+
+	stmt, err := db.Prepare("INSERT INTO wabot_sent (sender_id, phone, message, price, appointment_id, license_id)  (SELECT sender_id, phone, message, price, appointment_id, license_id FROM wabot_queue where id=?)")
 
 	if err != nil {
 		panic(err.Error())
@@ -281,7 +283,7 @@ func AddToQueue(phone string, message string, datetime string, senderId int, lic
 }
 
 func GetResponsesToSync() []lib.ResponseToServer {
-	rows, err := db.Query("SELECT id, message, appointment_id AppointmentId, license_id LicenseId, datetime, phone, auto_id AutoId FROM wabot.wabot_response WHERE sync=0 AND from_me=0")
+	rows, err := db.Query("SELECT id, message, appointment_id AppointmentId, license_id LicenseId, datetime, phone, auto_id AutoId FROM wabot.wabot_response WHERE sync=0 AND from_me=0 AND license_id is not null")
 
 	if err != nil {
 		panic(err.Error())
@@ -307,4 +309,14 @@ func UpdateSyncedResponses(lastId int) {
 	}
 
 	stmt.Exec(lastId)
+}
+
+func RegularizeResponseLicenseId()  {
+	stmt, err := db.Prepare("UPDATE wabot_response SET license_id=(SELECT license_id) WHERE license_id is null")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	stmt.Exec()
 }

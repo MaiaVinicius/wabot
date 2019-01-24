@@ -2,7 +2,7 @@ package lib
 
 import (
 	"fmt"
-	"github.com/rhymen/go-whatsapp"
+	"github.com/MaiaVinicius/go-whatsapp"
 	"os"
 	"strings"
 	"time"

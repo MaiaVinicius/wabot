@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/rhymen/go-whatsapp"
+	"github.com/MaiaVinicius/go-whatsapp"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -17,8 +17,8 @@ type ResponseToServer struct {
 	Message       string
 	DateTime      string
 	Timestamp     int64
-	LicenseId     int
-	AppointmentId int
+	LicenseId     int64
+	AppointmentId int64
 	FromMe        bool
 	Status        whatsapp.MessageStatus
 }
