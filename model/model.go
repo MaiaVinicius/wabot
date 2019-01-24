@@ -122,7 +122,7 @@ func GetQueue(senderId int) []Queue {
 }
 
 func RemoveFromQueue(queueId int) {
-	println(queueId)
+	//println(queueId)
 
 	stmt, err := db.Prepare("INSERT INTO wabot_sent (sender_id, phone, message, price, appointment_id, license_id)  (SELECT sender_id, phone, message, price, appointment_id, license_id FROM wabot_queue where id=?)")
 
