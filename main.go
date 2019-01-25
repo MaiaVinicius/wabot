@@ -38,7 +38,7 @@ func startCron() {
 	model.LogMessage(1, "Cron inicializado.", 0)
 	RunJob()
 
-	c.AddFunc("@every 8m", RunJob)
+	c.AddFunc("@every 15m", RunJob)
 	go c.Start()
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt, os.Kill)

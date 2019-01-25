@@ -101,7 +101,7 @@ func GetProjects() []Project {
 }
 
 func GetQueue(senderId int) []Queue {
-	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date<=CURDATE() and message like 'Obrigado%' order by send_date, send_time asc LIMIT 6")
+	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date=CURDATE() order by send_date, send_time asc LIMIT 10")
 
 	rows, err := stmt.Query(senderId)
 
