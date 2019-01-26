@@ -8,6 +8,7 @@ Desenvolvi essa solução pois a API oficial do WhatsApp é muito cara e restrit
 
 ## !!! Avisos !!!
 Se seu objetivo é enviar cerca de 1.000 mensagens / min. , **não utilize essa api**. Ela foi feita para envios moderados, com baixa taxa de envio (cerca de 1 envio a cada 30-50 segundos) **por Chip**. 
+
 Vale ressaltar que é possível a configuração de um ou mais Chips, podendo com isso **aumentar a taxa de envio**.
 
 
