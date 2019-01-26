@@ -87,16 +87,17 @@ func Feed() {
 			phone := element.Phone
 			licenseId := element.LicenseId
 			appointmentId := element.AppointmentId
+			eventId := element.EventId
 			message := element.Message
 			datetime := element.DateTime
 			senderId := proj.SenderID
 
-			alreadyAddedId := model.QueueAlreadyAdded(licenseId, appointmentId)
+			alreadyAddedId := model.QueueAlreadyAdded(licenseId, appointmentId, phone, message)
 			if alreadyAddedId == "" {
 				messageAlreadySent := model.MessageAlreadySent(licenseId, appointmentId)
 
 				if messageAlreadySent == "" {
-					model.AddToQueue(phone, message, datetime, senderId, licenseId, appointmentId)
+					model.AddToQueue(phone, message, datetime, senderId, licenseId, appointmentId, eventId)
 				}
 			}
 		}

@@ -94,6 +94,7 @@ func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
 		item := lib.Sent{}
 
 		item.LicenseId = element.LicenseId
+		item.EventId = element.EventId
 		item.AppointmentId = element.AppointmentId
 
 		// append works on nil slices.

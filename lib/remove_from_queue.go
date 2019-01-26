@@ -33,6 +33,7 @@ func getUrl(licenseId string, key string) string {
 type Sent struct {
 	LicenseId     int
 	AppointmentId int
+	EventId       int
 }
 
 type DataRemove struct {
@@ -62,8 +63,8 @@ func RemoveQueue(data []Sent) {
 
 	fmt.Println("Status:", resp.Status)
 	//fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	if false{
+	body, 	_ := ioutil.ReadAll(resp.Body)
+	if false {
 		fmt.Println("response Body:", string(body))
 	}
 }
