@@ -3,10 +3,10 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"github.com/MaiaVinicius/go-whatsapp"
 	"github.com/MaiaVinicius/wabot/lib"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
-	"github.com/MaiaVinicius/go-whatsapp"
 	"log"
 	"os"
 	"strconv"
@@ -25,6 +25,7 @@ type Queue struct {
 	SenderID      int
 	LicenseId     int
 	AppointmentId int
+	EventId       int
 	Message       string
 	Phone         string
 	//Metadata2     string
@@ -101,7 +102,7 @@ func GetProjects() []Project {
 }
 
 func GetQueue(senderId int) []Queue {
-	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date=CURDATE() order by send_date, send_time asc LIMIT 10")
+	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date=CURDATE() order by send_date, send_time asc LIMIT 30")
 
 	rows, err := stmt.Query(senderId)
 
@@ -124,7 +125,7 @@ func GetQueue(senderId int) []Queue {
 func RemoveFromQueue(queueId int) {
 	//println(queueId)
 
-	stmt, err := db.Prepare("INSERT INTO wabot_sent (sender_id, phone, message, price, appointment_id, license_id)  (SELECT sender_id, phone, message, price, appointment_id, license_id FROM wabot_queue where id=?)")
+	stmt, err := db.Prepare("INSERT INTO wabot_sent (sender_id, phone, message, price, appointment_id, license_id, event_id)  (SELECT sender_id, phone, message, price, appointment_id, license_id, event_id FROM wabot_queue where id=?)")
 
 	if err != nil {
 		panic(err.Error())
@@ -240,10 +241,10 @@ func GetLastSent(projectId int) string {
 	return response.Datetime
 }
 
-func QueueAlreadyAdded(licenseId int64, appointmentId int64) string {
-	stmt, err := db.Prepare("SELECT id FROM wabot_queue WHERE license_id=? AND appointment_id=?")
+func QueueAlreadyAdded(licenseId int64, appointmentId int64, phone string, message string) string {
+	stmt, err := db.Prepare("SELECT id FROM wabot_queue WHERE (license_id=? AND appointment_id=?) or (phone=? and message=? and send_date=curdate())")
 
-	rows := stmt.QueryRow(licenseId, appointmentId)
+	rows := stmt.QueryRow(licenseId, appointmentId, phone, message)
 
 	if err != nil {
 		panic(err.Error())
@@ -272,14 +273,14 @@ func MessageAlreadySent(licenseId int64, appointmentId int64) string {
 	return response.ID
 }
 
-func AddToQueue(phone string, message string, datetime string, senderId int, licenseId int64, appointmentId int64) {
-	stmt, err := db.Prepare("INSERT INTO wabot.wabot_queue (sender_id, message, phone, send_date, send_time, license_id, appointment_id) value (?, ?, ?, DATE(?), TIME(?), ?, ?)")
+func AddToQueue(phone string, message string, datetime string, senderId int, licenseId int64, appointmentId int64, eventId int64) {
+	stmt, err := db.Prepare("INSERT INTO wabot.wabot_queue (sender_id, message, phone, send_date, send_time, license_id, appointment_id, event_id) value (?, ?, ?, DATE(?), TIME(?), ?, ?, ?)")
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	stmt.Exec(senderId, message, phone, datetime, datetime, licenseId, appointmentId)
+	stmt.Exec(senderId, message, phone, datetime, datetime, licenseId, appointmentId, eventId)
 }
 
 func GetResponsesToSync() []lib.ResponseToServer {
@@ -311,7 +312,7 @@ func UpdateSyncedResponses(lastId int) {
 	stmt.Exec(lastId)
 }
 
-func RegularizeResponseLicenseId()  {
+func RegularizeResponseLicenseId() {
 	stmt, err := db.Prepare("UPDATE wabot_response SET license_id=(SELECT license_id) WHERE license_id is null")
 
 	if err != nil {
