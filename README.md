@@ -2,7 +2,10 @@
 
 ## Introdução
 
-O objetivo desse projeto é enviar e receber mensagens utilizando o WhatsApp
+O objetivo desse projeto é enviar e receber mensagens utilizando o WhatsApp. Essa implementação é uma versão mais comercial do repositório go-whatsapp (https://github.com/Rhymen/go-whatsapp).
+
+Desenvolvi essa solução pois a API oficial do WhatsApp é muito cara e restritiva.
+
 
 ## Requisitos 
 
@@ -33,6 +36,7 @@ O objetivo desse projeto é enviar e receber mensagens utilizando o WhatsApp
 - Para cada mensagem, tente variar o conteúdo. Dessa forma ajuda o WhatsApp a entender como um mensagem mais "humana".
 - Mantenha o celular que contém o CHIP **sempre** conectado no wi-fi.
 - Preferencialmente, mantenha a tela do celular sempre ligada, conectado a um carregador e com o WhatsApp Business sempre aberto.
+- É possível utilizar o WhatsApp Web no Chip que está enviando **apenas** quando os disparos não estão sendo feitos.
 
 
 ## Roadmap de novas funções
