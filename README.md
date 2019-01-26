@@ -14,7 +14,7 @@ Desenvolvi essa solução pois a API oficial do WhatsApp é muito cara e restrit
 - Um celular com conexão com internet
 - Um chip com o WhatsApp Business configurado
 
-## Como utilizar
+## Configurações
 
 - Crie um banco de dados `wabot`
 - Execute o arquivo `/storage/wabot.sql` 
@@ -24,11 +24,24 @@ Desenvolvi essa solução pois a API oficial do WhatsApp é muito cara e restrit
     - Que fornecerá a fila de envio (`QUEUE_URL`)
     - Que removerá um envio da fila no servidor (`REMOVE_QUEUE_URL`)
     - Que receberá as respostas (`RESPONSES_URL`)
-- Preencha as tabelas `wabot_project` e `wabot_sender`
-- Rode o arquivo main.go 
-    - Obs: Da primeira vez que rodar a aplicação irá exibir um QR Code na tela. Escaneie esse QR Code com seu WhatsApp
-- A aplicação irá receber as mensagens e depois enviar cada mensagem da fila em cerca de 30-50 segundos cada mensagem
+- Preencha as tabelas
+    - `wabot_project` com o nome do seu projeto
+    - `wabot_sender` com o número que está utilizando - o número do seu Chip
+   
+## Testando o envio
 
+Após seguir os passos descritos anteriormente:
+
+- Crie uma linha na tabela `wabot_queue` contendo 
+    - `sender_id`
+    - `número` que deseja enviar (pode ser o seu próprio número para fins de teste)
+    - `send_date` e `send_time`: a data e hora que está agendado o envio. Preencha a data e hora atual para ocorrer o envio imediato
+    - As demais colunas são opcionais
+- Execute o arquivo main.go `go main.go`
+    - Obs: Da primeira vez que rodar a aplicação irá exibir um QR Code na tela. Escaneie esse QR Code com seu WhatsApp
+- Perceberá que é gerado um número aleatório como um `timeout` para o envio. Isso é para o detector de SPAM do WhatsApp não perceber atividade automatizada.
+- Se seguiu todos os passos corretamente, o envio será feito com sucesso.
+ 
 ## Recomendações
 
 - Utilize o WhatsApp Business.
