@@ -37,7 +37,7 @@ O objetivo desse projeto é enviar e receber mensagens utilizando o WhatsApp
 
 ## Comparação com a api do WhatsApp Business
 
-|           Plataforma          | Valor / envio | Taxa de habilitação | Risco de bloqueio do número      | Permite Marketing              | Modelo fixo de mensagem       | Disparo / min. | Captura de resposta    |  Envio deme imag | Permite envio de mais um número   |
+| Plataforma | Valor / envio | Taxa de habilitação | Risco de bloqueio do número | Permite Marketing | Modelo fixo de mensagem | Disparo / min. | Captura de resposta |  Envio deme imag | Permite envio de mais um número |
 |:-----------------------------:|---------------|---------------------|----------------------------------|--------------------------------|-------------------------------|----------------|------------------------|------------------|-----------------------------------|
-| WhatsApp Business API oficial | 0,36          | 6.000,00            | Não                              | Não                            | Sim                           | Ilimitado      | Sim - por WebHook      | Sim              | Não - limitado a apenas um número |
-|             WABOT             | 0,00          | 17,00               | Sim, se utilizar de forma errada | Sim - mas poderá ser bloqueado | Não - permite qualquer modelo | 2              | Sim - a cada 5 minutos | Não              | Quantos números precisar          |
+| WhatsApp Business API oficial | 0,36 | 6.000,00 | Não | Não | Sim | Ilimitado | Sim - por WebHook | Sim | Não - limitado a apenas um número |
+| WABOT | 0,00 | 17,00 | Sim, se utilizar de forma errada | Sim - mas poderá ser bloqueado | Não - permite qualquer modelo | 2 | Sim - a cada 5 minutos | Não | Quantos números precisar |
