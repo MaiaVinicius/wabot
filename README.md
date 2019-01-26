@@ -4,12 +4,20 @@
 
 O objetivo desse projeto é enviar e receber mensagens utilizando o WhatsApp
 
+## Requisitos 
+
+- GO
+- MySQL 
+- Um celular com conexão com internet
+- Um chip com o WhatsApp Business configurado
 
 ## Como utilizar
 
+- Crie um banco de dados `wabot`
+- Execute o arquivo `/storage/wabot.sql` 
 - Renomeie o arquivo `.env.example` para `.env` na pasta raiz do projeto
 - Preencha as informações de conexão com o banco de dados
-- Preencha os endpoints:
+- Ainda no arquivo `.env`, preencha os endpoints:
     - Que fornecerá a fila de envio (`QUEUE_URL`)
     - Que removerá um envio da fila no servidor (`REMOVE_QUEUE_URL`)
     - Que receberá as respostas (`RESPONSES_URL`)
