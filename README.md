@@ -58,15 +58,15 @@ Após seguir os passos descritos anteriormente:
 - É possível utilizar o WhatsApp Web no Chip que está enviando **apenas** quando os disparos não estão sendo feitos.
 
 
-## Roadmap de novas funções
+## Roadmap de novas funções / Contribuição
 
 - Asegurar que a aplicação fique rodando 24/7.
 - Criação de um Dashboard para controlar os envios / respostas
 - Hospedar em um server
-- Adaptar para rodar mais de uma instância com CHIP de disparo diferente - para aumentar a taxa de envio
+- Adaptar para rodar mais de uma instância com Chip de disparo diferente - para aumentar a taxa de envio
 - Tentar encontrar um timeout menor que não seja bloqueado
 - Desenvolver envio de mensagem baseado na resposta do usuário - ChatBot
-- Adicionar função de BlackList de contatos
+- Adicionar função para BlackList de contatos
 
 ## Comparação com a api do WhatsApp Business
 
