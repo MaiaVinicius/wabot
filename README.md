@@ -34,6 +34,7 @@ O objetivo desse projeto é enviar e receber mensagens utilizando o WhatsApp
 - Hospedar em um server
 - Adaptar para rodar mais de uma instância com CHIP de disparo diferente - para aumentar a taxa de envio
 - Tentar encontrar um timeout menor que não seja bloqueado.
+- Desenvolver envio de mensagem baseado na resposta do usuário - ChatBot
 
 ## Comparação com a api do WhatsApp Business
 
