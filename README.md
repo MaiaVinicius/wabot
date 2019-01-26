@@ -50,7 +50,7 @@ Após seguir os passos descritos anteriormente:
 
 - Utilize o WhatsApp Business.
 - Não tente rodar esse App com fins de Marketing - Acredite, o WhatsApp irá te bloquear muito rápido.
-- Para cada mensagem, tente variar o conteúdo. Dessa forma ajuda o WhatsApp a entender como um mensagem mais "humana".
+- Para cada mensagem, tente variar o conteúdo. Dessa forma faz com que o WhatsApp não perceba atividade automatizada.
 - Mantenha o celular que contém o CHIP **sempre** conectado no wi-fi.
 - Preferencialmente, mantenha a tela do celular sempre ligada, conectado a um carregador e com o WhatsApp Business sempre aberto.
 - É possível utilizar o WhatsApp Web no Chip que está enviando **apenas** quando os disparos não estão sendo feitos.
