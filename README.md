@@ -20,6 +20,7 @@ Vale ressaltar que é possível a configuração de um ou mais Chips, podendo co
 
 ## Configurações
 
+- Execute o comando `go get` para instalar as dependências necessárias para a utilização da api.
 - Crie um banco de dados `wabot`
 - Execute o arquivo `/storage/wabot.sql` 
 - Renomeie o arquivo `.env.example` para `.env` na pasta raiz do projeto
