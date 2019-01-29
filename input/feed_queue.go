@@ -102,7 +102,10 @@ func Feed() {
 			}
 		}
 
-		println(fmt.Sprintf("---->  	%d importados", len(queue.Data.SMSList)))
+		msg := fmt.Sprintf("---->  	%d importados para fila.", len(queue.Data.SMSList))
+
+		println(msg)
+		model.LogMessage(1, msg, proj.ID)
 	}
 
 }

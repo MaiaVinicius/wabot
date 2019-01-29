@@ -64,12 +64,15 @@ func prepareReception(project model.Project) {
 		//}
 		added := model.InsertResponse(project.ID, element.Phone, element.ID, element.Message, element.Datetime, element.Status, element.FromMe)
 
-		if added{
+		if added {
 			i += 1
 		}
 	}
 
-	println(fmt.Sprintf("----->	Novas respostas recebidas: %d", i))
+	msg := fmt.Sprintf("Novas respostas recebidas: %d", i)
+
+	println(msg)
+	model.LogMessage(5, msg, project.ID)
 }
 
 func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
@@ -88,7 +91,7 @@ func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
 
 		element.Message = fmt.Sprintf("*%s*. \n\n%s", projectName, element.Message)
 
-		sendMessage(wac, element)
+		sendMessage(wac, element, element.ID)
 
 		//add item para remover
 		item := lib.Sent{}
@@ -105,8 +108,11 @@ func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
 
 }
 
-func sendMessage(wac *w.Conn, message model.Queue) int {
-	print(fmt.Sprintf("------->		Enviando para: %s", message.Phone))
+func sendMessage(wac *w.Conn, message model.Queue, projectId int) int {
+
+	msg := fmt.Sprintf("Enviando para: %s", message.Phone)
+	print(msg)
+	model.LogMessage(4, msg, projectId)
 
 	status := lib.Send(wac, message.Phone, message.Message)
 

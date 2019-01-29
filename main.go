@@ -2,15 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/MaiaVinicius/wabot/input"
-	"github.com/MaiaVinicius/wabot/model"
 	"github.com/MaiaVinicius/wabot/service"
 	"github.com/gorilla/mux"
-	"github.com/robfig/cron"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
+	"wabot/model"
 )
 
 func StartProjects(w http.ResponseWriter, r *http.Request) {
@@ -34,21 +32,32 @@ func startWebServer() {
 }
 
 func startCron() {
-	c := cron.New()
-	model.LogMessage(1, "Cron inicializado.", 0)
+	//c := cron.New()
 	RunJob()
 
-	c.AddFunc("@every 10m", RunJob)
-	go c.Start()
-	sig := make(chan os.Signal)
-	signal.Notify(sig, os.Interrupt, os.Kill)
-	<-sig
+	//c.AddFunc("@every 4m", RunJob)
+	//go c.Start()
+	//sig := make(chan os.Signal)
+	//signal.Notify(sig, os.Interrupt, os.Kill)
+	//<-sig
 }
 
 func RunJob() {
+	defer recoverName()
+
+	model.LogMessage(1, "Processo iniciado.", 0)
+
 	input.Feed()
 	println("===============================")
 	println("|     Iniciando Cron job.     |")
 	println("===============================")
 	service.StartProjects()
+}
+
+func recoverName() {
+	if r := recover(); r != nil {
+		msg := fmt.Sprintf("Panic: ", r)
+		println(msg)
+		model.LogMessage(3, msg, 0)
+	}
 }
