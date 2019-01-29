@@ -33,7 +33,7 @@ func prepareQueue(project model.Project) {
 
 		model.LogMessage(1, msg, project.ID)
 
-		sendQueue(project.Phone, queue, project.Label)
+		sendQueue(project.Phone, queue, project.Label, project.ID)
 	}
 }
 
@@ -75,7 +75,7 @@ func prepareReception(project model.Project) {
 	model.LogMessage(5, msg, project.ID)
 }
 
-func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
+func sendQueue(senderPhone string, queue []model.Queue, projectName string, projectId int) {
 	//connect
 
 	wac, err := lib.Connect(senderPhone)
@@ -93,7 +93,7 @@ func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
 
 		element.Message = fmt.Sprintf("*%s*. \n\n%s", projectName, element.Message)
 
-		sendMessage(wac, element, element.ID, config)
+		sendMessage(wac, element, projectId, config)
 
 		//add item para remover
 		item := lib.Sent{}
