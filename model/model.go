@@ -37,6 +37,13 @@ type Sent struct {
 	AppointmentId int
 }
 
+type Config struct {
+	SendMinimumTimeout int
+	SendTimeRandom      int
+	LimitPerExecution  int
+	CronTimeout        int
+}
+
 var db = dbConn()
 
 func unicode2utf8(source string) string {
@@ -102,9 +109,13 @@ func GetProjects() []Project {
 }
 
 func GetQueue(senderId int) []Queue {
-	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date=CURDATE() order by send_date, send_time asc LIMIT 10")
+	config := GetConfig()
 
-	rows, err := stmt.Query(senderId)
+	limit := config.LimitPerExecution
+
+	stmt, err := db.Prepare("SELECT id, message, phone, license_id as LicenseId, appointment_id as AppointmentId FROM wabot_queue where active=1 and sender_id=? and send_date=CURDATE() order by send_date, send_time asc LIMIT ?")
+
+	rows, err := stmt.Query(senderId, limit)
 
 	if err != nil {
 		panic(err.Error())
@@ -320,4 +331,21 @@ func RegularizeResponseLicenseId() {
 	}
 
 	stmt.Exec()
+}
+
+func GetConfig() Config {
+	stmt, err := db.Prepare("SELECT send_minimum_timeout SendMinimumTimeout, send_time_random SendTimeRandom, limit_per_execution LimitPerExecution, cron_timeout CronTimeout  FROM wabot_config WHERE id=1")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	rows := stmt.QueryRow()
+
+
+	var response Config
+
+	err = rows.Scan(&response.SendMinimumTimeout, &response.SendTimeRandom, &response.LimitPerExecution, &response.CronTimeout)
+
+	return response
 }

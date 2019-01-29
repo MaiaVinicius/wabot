@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/MaiaVinicius/wabot/input"
+	"github.com/MaiaVinicius/wabot/model"
 	"github.com/MaiaVinicius/wabot/service"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"wabot/model"
 )
 
 func StartProjects(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +43,7 @@ func startCron() {
 }
 
 func RunJob() {
+
 	defer recoverName()
 
 	model.LogMessage(1, "Processo iniciado.", 0)

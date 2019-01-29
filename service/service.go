@@ -86,12 +86,14 @@ func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
 
 	var toRemove []lib.Sent
 
+	config := model.GetConfig()
+
 	for _, element := range queue {
 		//element.Message = strings.Replace(element.Message, "[METADATA]", element.Metadata2, -1)
 
 		element.Message = fmt.Sprintf("*%s*. \n\n%s", projectName, element.Message)
 
-		sendMessage(wac, element, element.ID)
+		sendMessage(wac, element, element.ID, config)
 
 		//add item para remover
 		item := lib.Sent{}
@@ -108,13 +110,15 @@ func sendQueue(senderPhone string, queue []model.Queue, projectName string) {
 
 }
 
-func sendMessage(wac *w.Conn, message model.Queue, projectId int) int {
+func sendMessage(wac *w.Conn, message model.Queue, projectId int, config model.Config) int {
 
 	msg := fmt.Sprintf("Enviando para: %s", message.Phone)
 	print(msg)
 	model.LogMessage(4, msg, projectId)
 
-	status := lib.Send(wac, message.Phone, message.Message)
+	sendMinimumTimeout := config.SendMinimumTimeout
+	sendTimeRandom := config.SendTimeRandom
+	status := lib.Send(wac, message.Phone, message.Message, sendMinimumTimeout, sendTimeRandom)
 
 	if status == 200 {
 		removeFromQueue(message.ID)
