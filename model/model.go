@@ -35,11 +35,12 @@ type Sent struct {
 	ID            int
 	LicenseId     int
 	AppointmentId int
+	EventId       int
 }
 
 type Config struct {
 	SendMinimumTimeout int
-	SendTimeRandom      int
+	SendTimeRandom     int
 	LimitPerExecution  int
 	CronTimeout        int
 }
@@ -178,11 +179,11 @@ func InsertResponse(projectId int, phone string, id string, message string, time
 
 			if count > 0 {
 				//println("Affected row")
-				licenseId, appointmentId := findResponseClient(phone, timestamp)
+				licenseId, appointmentId, eventId := findResponseClient(phone, timestamp)
 
 				if licenseId > 0 {
 					//println("Updating response")
-					updateResponse(id, licenseId, appointmentId)
+					updateResponse(id, licenseId, appointmentId, eventId)
 
 				}
 				return true
@@ -193,18 +194,18 @@ func InsertResponse(projectId int, phone string, id string, message string, time
 	return false
 }
 
-func updateResponse(responseId string, licenseId int, appointmentId int) {
-	stmt, err := db.Prepare("UPDATE wabot_response SET license_id=?, appointment_id=? WHERE id=? AND license_id is null and appointment_id is null")
+func updateResponse(responseId string, licenseId int, appointmentId int, eventId int) {
+	stmt, err := db.Prepare("UPDATE wabot_response SET event_id=?,license_id=?, appointment_id=? WHERE id=? AND license_id is null and appointment_id is null")
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	stmt.Exec(licenseId, appointmentId, responseId)
+	stmt.Exec(eventId, licenseId, appointmentId, responseId)
 }
 
-func findResponseClient(phone string, datetime string) (int, int) {
-	stmt, err := db.Prepare("SELECT ifnull(ID,0)ID, ifnull(license_id,0 ) LicenseId, ifnull(appointment_id,0) AppointmentId FROM wabot_sent WHERE phone=? ORDER BY datetime DESC LIMIT 1")
+func findResponseClient(phone string, datetime string) (int, int, int) {
+	stmt, err := db.Prepare("SELECT ifnull(ID,0)ID, ifnull(license_id,0 ) LicenseId, ifnull(appointment_id,0) AppointmentId, ifnull(event_id, 0)EventId FROM wabot_sent WHERE phone=? ORDER BY datetime DESC LIMIT 1")
 
 	rows := stmt.QueryRow(phone)
 
@@ -214,7 +215,7 @@ func findResponseClient(phone string, datetime string) (int, int) {
 
 	var response Sent
 
-	err2 := rows.Scan(&response.ID, &response.AppointmentId, &response.LicenseId)
+	err2 := rows.Scan(&response.ID, &response.AppointmentId, &response.LicenseId, &response.EventId)
 
 	if err2 != nil {
 		//panic(err2.Error()) // proper error handling instead of panic in your app
@@ -222,8 +223,9 @@ func findResponseClient(phone string, datetime string) (int, int) {
 
 	appointmentId := response.AppointmentId
 	licenseId := response.LicenseId
+	eventId := response.EventId
 
-	return appointmentId, licenseId
+	return appointmentId, licenseId, eventId
 }
 
 func LogMessage(logType int, message string, projectId int) {
@@ -295,7 +297,7 @@ func AddToQueue(phone string, message string, datetime string, senderId int, lic
 }
 
 func GetResponsesToSync() []lib.ResponseToServer {
-	rows, err := db.Query("SELECT id, message, appointment_id AppointmentId, license_id LicenseId, datetime, phone, auto_id AutoId FROM wabot.wabot_response WHERE sync=0 AND from_me=0 AND license_id is not null")
+	rows, err := db.Query("SELECT id, message, appointment_id AppointmentId, event_id EventId, license_id LicenseId, datetime, phone, auto_id AutoId FROM wabot.wabot_response WHERE sync=0 AND from_me=0 AND license_id is not null")
 
 	if err != nil {
 		panic(err.Error())
@@ -305,7 +307,7 @@ func GetResponsesToSync() []lib.ResponseToServer {
 	for rows.Next() {
 		var response lib.ResponseToServer
 
-		err = rows.Scan(&response.ID, &response.Message, &response.AppointmentId, &response.LicenseId, &response.DateTime, &response.Phone, &response.AutoId)
+		err = rows.Scan(&response.ID, &response.Message, &response.AppointmentId, &response.EventId, &response.LicenseId, &response.DateTime, &response.Phone, &response.AutoId)
 
 		responses = append(responses, response)
 	}
@@ -341,7 +343,6 @@ func GetConfig() Config {
 	}
 
 	rows := stmt.QueryRow()
-
 
 	var response Config
 

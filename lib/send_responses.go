@@ -19,6 +19,7 @@ type ResponseToServer struct {
 	Timestamp     int64
 	LicenseId     int64
 	AppointmentId int64
+	EventId       int64
 	FromMe        bool
 	Status        whatsapp.MessageStatus
 }
@@ -49,7 +50,7 @@ func SendResponsesToServer(data []ResponseToServer) {
 	fmt.Println("response Status:", resp.Status)
 	//fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	if true{
+	if true {
 		fmt.Println("response Body:", string(body))
 	}
 }
