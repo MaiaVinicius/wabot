@@ -36,6 +36,10 @@ func (*waHandler) HandleTextMessage(message whatsapp.TextMessage) {
 	unixTimeUTC := time.Unix(int64(message.Info.Timestamp), 0)
 	unitTimeInRFC3339 := unixTimeUTC.Format("2006-01-02 15:04:05")
 
+	if !message.Info.FromMe {
+		//println(fmt.Sprintf("%s -> %s", message.Text, unitTimeInRFC3339))
+	}
+
 	response.ID = message.Info.Id
 	response.Message = message.Text
 	response.Timestamp = int64(message.Info.Timestamp)
@@ -70,7 +74,7 @@ func (*waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 }
 
 func Receive(phone string) []Response {
-	wac, err := NewSession(10)
+	wac, err := NewSession(5 * time.Second)
 
 	//Add handler
 	wac.AddHandler(&waHandler{})
@@ -80,7 +84,7 @@ func Receive(phone string) []Response {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error logging in: %v\n", err)
 	}
-	<-time.After(3 * time.Second)
+	<-time.After(30 * time.Second)
 
 	return responses
 }
