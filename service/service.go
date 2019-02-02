@@ -8,12 +8,14 @@ import (
 	"os"
 )
 
+var config = model.GetConfig()
+
 func StartProjects() {
 	projects := model.GetProjects()
 
 	for _, element := range projects {
 
-		prepareReception(element)
+		//prepareReception(element)
 		prepareQueue(element)
 		prepareReception(element)
 	}
@@ -54,7 +56,7 @@ func prepareReception(project model.Project) {
 
 	var responses []lib.Response
 
-	responses = lib.Receive(project.Phone)
+	responses = lib.Receive(project.Phone, config.ReceiveTimeout)
 
 	i := 0
 
@@ -86,7 +88,6 @@ func sendQueue(senderPhone string, queue []model.Queue, projectName string, proj
 
 	var toRemove []lib.Sent
 
-	config := model.GetConfig()
 
 	for _, element := range queue {
 		//element.Message = strings.Replace(element.Message, "[METADATA]", element.Metadata2, -1)

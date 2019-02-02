@@ -73,7 +73,7 @@ func (*waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	fmt.Printf("%v %v\n\timage reveived, saved at:%v\n", message.Info.Timestamp, message.Info.RemoteJid, filename)
 }
 
-func Receive(phone string) []Response {
+func Receive(phone string, receiveTimeout time.Duration) []Response {
 	wac, err := NewSession(5 * time.Second)
 
 	//Add handler
@@ -84,7 +84,9 @@ func Receive(phone string) []Response {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error logging in: %v\n", err)
 	}
-	<-time.After(30 * time.Second)
+
+	duration :=  receiveTimeout * time.Second
+	<-time.After(duration)
 
 	return responses
 }

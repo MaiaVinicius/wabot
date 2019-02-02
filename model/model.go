@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Project struct {
@@ -43,6 +44,7 @@ type Config struct {
 	SendTimeRandom     int
 	LimitPerExecution  int
 	CronTimeout        int
+	ReceiveTimeout     time.Duration
 }
 
 var db = dbConn()
@@ -336,7 +338,7 @@ func RegularizeResponseLicenseId() {
 }
 
 func GetConfig() Config {
-	stmt, err := db.Prepare("SELECT send_minimum_timeout SendMinimumTimeout, send_time_random SendTimeRandom, limit_per_execution LimitPerExecution, cron_timeout CronTimeout  FROM wabot_config WHERE id=1")
+	stmt, err := db.Prepare("SELECT send_minimum_timeout SendMinimumTimeout, send_time_random SendTimeRandom, limit_per_execution LimitPerExecution, cron_timeout CronTimeout, receive_message_timeout ReceiveTimeout  FROM wabot_config WHERE id=1")
 
 	if err != nil {
 		panic(err.Error())
@@ -346,7 +348,7 @@ func GetConfig() Config {
 
 	var response Config
 
-	err = rows.Scan(&response.SendMinimumTimeout, &response.SendTimeRandom, &response.LimitPerExecution, &response.CronTimeout)
+	err = rows.Scan(&response.SendMinimumTimeout, &response.SendTimeRandom, &response.LimitPerExecution, &response.CronTimeout, &response.ReceiveTimeout)
 
 	return response
 }
