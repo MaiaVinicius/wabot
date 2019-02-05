@@ -9,7 +9,8 @@ import (
 )
 
 func Send(wac *w.Conn, sendTo string, message string, sendMinimumTimeout int, sendTimeRandom int) int {
-
+	//10 segundos minimo bloqueia o chip
+	//30 seg. segura tranquilo
 	t := sendMinimumTimeout + rand.Intn(sendTimeRandom)
 	//t := 90 + rand.Intn(20)
 
