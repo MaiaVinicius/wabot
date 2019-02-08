@@ -13,6 +13,7 @@ func Send(wac *w.Conn, sendTo string, message string, sendMinimumTimeout int, se
 
 	//30 seg. minimo segura tranquilo
 	//random de 20 seg
+	//no minimo 15
 
 	t := sendMinimumTimeout + rand.Intn(sendTimeRandom)
 	//t := 90 + rand.Intn(20)
